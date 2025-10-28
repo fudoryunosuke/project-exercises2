@@ -4,8 +4,13 @@
   if(!root) return;
 
   // ストア相当のユーティリティ
-  const getDamagesBySeverity = (sev) => damages.filter(d => d.severity === sev);
-  const getDamagesByType = (type) => damages.filter(d => d.type === type);
+  // 対応状況のローカル上書きをマージ
+  const SAVED_KEY = 'damagesStatusOverrides';
+  const overrides = JSON.parse(localStorage.getItem(SAVED_KEY) || '{}');
+  const mergedDamages = damages.map(d => ({ ...d, ...(overrides[d.id] || {}) }));
+
+  const getDamagesBySeverity = (sev) => mergedDamages.filter(d => d.severity === sev);
+  const getDamagesByType = (type) => mergedDamages.filter(d => d.type === type);
 
   const high = getDamagesBySeverity('高度');
   const mid = getDamagesBySeverity('中度');
@@ -18,8 +23,8 @@
     { label: '低緊急度', value: low.length, icon: 'users', color: 'bg-green-500', description: '監視継続' },
     // 対応率
     { label: '対応率', value: (()=>{
-        const completed = damages.filter(d => d.status === 'completed').length;
-        const rate = damages.length ? Math.round((completed / damages.length) * 100) : 0;
+        const completed = mergedDamages.filter(d => d.status === 'completed').length;
+        const rate = mergedDamages.length ? Math.round((completed / mergedDamages.length) * 100) : 0;
         return rate + '%';
       })(), icon: 'check', color: 'bg-emerald-600', description: '完了/総件数' },
   ];
@@ -31,11 +36,11 @@
     { type: '穴ぼこ', color: 'bg-purple-100 text-purple-800' },
   ].map(t => ({ ...t, count: getDamagesByType(t.type).length }));
 
-  const recent = [...damages]
+  const recent = [...mergedDamages]
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0,5);
 
-  const monthlyData = damages.reduce((acc, d) => {
+  const monthlyData = mergedDamages.reduce((acc, d) => {
     const m = d.date.substring(0,7);
     acc[m] = (acc[m] || 0) + 1;
     return acc;
@@ -80,7 +85,7 @@
   typeCard.appendChild(h(`<h2 class="text-xl font-bold text-gray-900 mb-4">損傷種別分布</h2>`));
   const typeListEl = h(`<div class="space-y-3"></div>`);
   typeList.forEach(item => {
-    const pct = damages.length ? ((item.count / damages.length) * 100).toFixed(1) : '0.0';
+    const pct = mergedDamages.length ? ((item.count / mergedDamages.length) * 100).toFixed(1) : '0.0';
     typeListEl.appendChild(h(`
       <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
         <div class="flex items-center gap-3">
@@ -146,6 +151,32 @@
   });
   recentCard.appendChild(recentList);
   root.appendChild(recentCard);
+
+  // 対応状況 内訳
+  const statusCounts = (() => {
+    const init = { 'pending': 0, 'in-progress': 0, 'completed': 0, 'cancelled': 0 };
+    return mergedDamages.reduce((acc, d) => { acc[d.status] = (acc[d.status]||0) + 1; return acc; }, init);
+  })();
+  const statusCard = h(`<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"></div>`);
+  statusCard.appendChild(h(`<h2 class="text-xl font-bold text-gray-900 mb-4">対応状況内訳</h2>`));
+  const statusGrid = h(`<div class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>`);
+  const STATUS_OPTIONS = [
+    { key: 'pending', label: '未対応', badge: 'bg-gray-100 text-gray-800' },
+    { key: 'in-progress', label: '対応中', badge: 'bg-blue-100 text-blue-800' },
+    { key: 'completed', label: '対応完了', badge: 'bg-green-100 text-green-800' },
+    { key: 'cancelled', label: '対応不要', badge: 'bg-red-100 text-red-800' },
+  ];
+  STATUS_OPTIONS.forEach(s => {
+    statusGrid.appendChild(h(`
+      <div class="p-4 rounded-lg border border-gray-200">
+        <div class="text-sm text-gray-600 mb-1">${s.label}</div>
+        <div class="text-2xl font-bold text-gray-900">${statusCounts[s.key] || 0}</div>
+        <div class="mt-2 inline-block text-xs px-2 py-1 rounded ${s.badge}">${s.label}</div>
+      </div>
+    `));
+  });
+  statusCard.appendChild(statusGrid);
+  root.appendChild(statusCard);
 
   // Urgent
   const urgentCard = h(`<div class="bg-red-50 border border-red-200 rounded-xl p-6"></div>`);
