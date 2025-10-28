@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>道路管理システム - マップ表示</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- サイドバー -->
+<aside id="sidebar" class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col p-4">
+  <div id="toggleSidebar">☰</div>
+  <h1 class="text-xl font-bold text-yellow-400 mb-4 sidebar-text">道路管理システム</h1>
+
+  <nav class="mb-4 border-b border-gray-700 pb-4">
+    <a href="dashboard.html" class="block px-4 py-2 rounded hover:bg-gray-800 text-gray-400 mb-2 sidebar-link">
+      <span class="sidebar-text">ダッシュボード</span>
+    </a>
+    <a href="index.html" class="block px-4 py-2 rounded bg-gray-800 text-white mb-2 sidebar-link">
+      <span class="sidebar-text">マップ表示</span>
+    </a>
+    <a href="search.html" class="block px-4 py-2 rounded hover:bg-gray-800 text-gray-400 sidebar-link">
+      <span class="sidebar-text">損傷検索</span>
+    </a>
+    <a href="status.html" class="block px-4 py-2 rounded hover:bg-gray-800 text-gray-400 sidebar-link">
+      <span class="sidebar-text">対応状況管理</span>
+    </a>
+  </nav>
+
+  <div class="mb-4 border-b border-gray-700 pb-4">
+    <h2 class="text-gray-400 font-semibold mb-2 sidebar-text">フィルター</h2>
+    <label class="block text-sm font-semibold text-gray-400 mb-1 sidebar-text">月</label>
+    <select id="month-filter" class="w-full bg-gray-800 border border-gray-700 rounded-md p-2 text-white mb-3">
+      <option>全て</option>
+    </select>
+
+    <label class="block text-sm font-semibold text-gray-400 mb-1 sidebar-text">損傷度</label>
+    <select id="severity-filter" class="w-full bg-gray-800 border border-gray-700 rounded-md p-2 text-white mb-3">
+      <option>全て</option>
+    </select>
+
+    <label class="block text-sm font-semibold text-gray-400 mb-1 sidebar-text">損傷の種類</label>
+    <select id="type-filter" class="w-full bg-gray-800 border border-gray-700 rounded-md p-2 text-white">
+      <option>全て</option>
+    </select>
+  </div>
+</aside>
+
+<!-- マップ表示 -->
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="assets/js/damages.js"></script>
+<script src="assets/js/map.js"></script>
+</body>
+</html>
